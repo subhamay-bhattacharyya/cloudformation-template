@@ -1,0 +1,50 @@
+name: Terraform CI
+run-name: Build run by ${{ github.actor }} on ${{ github.ref_name }}
+
+on:
+  push:
+    branches:
+      - 'feature/**'
+      - 'bug/**'
+    paths-ignore:
+      - 'README.md'
+      - '.github/**'
+      - 'CODEOWNERS'
+      - 'LICENSE'
+      - 'VERSION'
+      - 'CHANGELOG.md'
+      - 'CODE_OF_CONDUCT.md'
+      - 'CONTRIBUTING.md'
+      - '*.sh'
+      - '*.txt'
+      - '*.json'
+      - '.gitignore'
+      - '.editorconfig'
+      - '.pre-commit-config.yaml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  id-token: write
+
+
+jobs:
+  cloudformation-ci: 
+    name: CloudFormation CI
+    runs-on: ubuntu-latest 
+    steps: 
+      - name: hello-world 
+        run: echo "Hello World!" 
+
+
+# jobs:
+#   cloudformation-ci:
+#     name: CI
+#     uses: subhamay-bhattacharyya-gha/cfn-ci-reusable-wf/.github/workflows/ci.yaml@feature/GHA-0009-add-condition-for-feature
+#     with:
+#       environment: "ci"
+#       cloudformation-dir: "cfn"
+#     secrets:
+#       aws-role-arn: ${{ secrets.AWS_ROLE_ARN }}
+#       infracost-api-key: ${{ secrets.INFRACOST_API_KEY }}
+#       infracost-gist-id: ${{ secrets.INFRACOST_GIST_ID }}
