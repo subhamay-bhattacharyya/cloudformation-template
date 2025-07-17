@@ -1,4 +1,4 @@
-name: Terraform CI
+name: CloudFormation CI
 run-name: Build run by ${{ github.actor }} on ${{ github.ref_name }}
 
 on:
