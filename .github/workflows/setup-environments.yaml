@@ -28,7 +28,7 @@ on:
 jobs:
   setup:
     name: Setup
-    uses: subhamay-bhattacharyya-gha/setup-aws-environments-wf/.github/workflows/setup-environments.yaml@feature/GHA-0006-create-env-variables-and
+    uses: subhamay-bhattacharyya-gha/setup-aws-environments-wf/.github/workflows/setup-environments.yaml@main
     with:
       ci-environment: ${{ github.event.inputs.ci-environment }}
       devl-environment: ${{ github.event.inputs.devl-environment }}
