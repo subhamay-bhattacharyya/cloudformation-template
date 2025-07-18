@@ -1,4 +1,3 @@
-# Base image (you can choose another if needed)
 FROM mcr.microsoft.com/devcontainers/base:ubuntu
 
 # Install prerequisites
@@ -7,13 +6,21 @@ RUN apt-get update && apt-get install -y \
     unzip \
     bash \
     git \
+    python3 \
+    python3-pip \
+    zip \
+    jq \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy your custom install script
-COPY install-tools.sh /usr/local/bin/install-tools.sh
+# Install AWS CLI v2
+RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" \
+ && unzip awscliv2.zip \
+ && ./aws/install \
+ && rm -rf awscliv2.zip aws
 
-# Make it executable
+# Copy and configure the tool installation script
+COPY install-tools.sh /usr/local/bin/install-tools.sh
 RUN chmod +x /usr/local/bin/install-tools.sh
 
-# (Optional) Define entrypoint or shell if needed
+# Default to bash shell
 SHELL ["/bin/bash", "-c"]

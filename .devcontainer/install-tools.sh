@@ -1,148 +1,47 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-LOG_FILE="install-tools.log"
-SUMMARY_FILE="${SUMMARY_FILE:-install-summary.json}"
-VERSIONS_FILE="${VERSIONS_FILE:-.tool-versions.json}"
-DRY_RUN=false
-INSTALL_TOOLS=(all)
+TOOLS_ARG="${1:-"--tools=all"}"
+LOG_FILE="/var/log/devcontainer-tools.log"
+mkdir -p "$(dirname "$LOG_FILE")"
 
-for arg in "$@"; do
-  case $arg in
-    --dry-run)
-      DRY_RUN=true
-      echo "[Dry Run] No changes will be made. Commands will be printed only."
-      ;;
-    --tools=*)
-      IFS=',' read -ra INSTALL_TOOLS <<< "${arg#*=}"
-      ;;
-    --summary-path=*)
-      SUMMARY_FILE="${arg#*=}"
-      ;;
-  esac
-done
+echo "🔧 Tool installation started: $TOOLS_ARG" | tee -a "$LOG_FILE"
 
-exec > >(tee -a "$LOG_FILE") 2>&1
+# Extract tool list
+TOOLS=$(echo "$TOOLS_ARG" | sed -n 's/--tools=//p')
 
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m'
-
-SUMMARY_JSON="{}"
-EXPECTED_JSON="{}"
-
-if [[ -f "$VERSIONS_FILE" ]]; then
-  EXPECTED_JSON=$(<"$VERSIONS_FILE")
-fi
-
-log_step() {
-  echo -e "\n${YELLOW}🔧 $(date '+%Y-%m-%d %H:%M:%S') - $1${NC}"
+install_cfn_lint() {
+  echo "📦 Installing cfn-lint..." | tee -a "$LOG_FILE"
+  pip3 install --no-cache-dir --upgrade cfn-lint==0.85.1 >> "$LOG_FILE" 2>&1
+  echo "✅ cfn-lint installed." | tee -a "$LOG_FILE"
 }
 
-run_cmd() {
-  log_step "$1"
-  shift
-  if $DRY_RUN; then
-    echo "[Dry Run] $*"
-  else
-    if "$@"; then
-      echo -e "${GREEN}✅ Success: $1${NC}"
-    else
-      echo -e "${RED}❌ Failed: $1${NC}"
-      exit 1
-    fi
-  fi
+install_taskcat() {
+  echo "📦 Installing taskcat..." | tee -a "$LOG_FILE"
+  pip3 install --no-cache-dir --upgrade taskcat==0.9.26 >> "$LOG_FILE" 2>&1
+  echo "✅ taskcat installed." | tee -a "$LOG_FILE"
 }
 
-add_summary() {
-  local name=$1
-  local version=$2
-  SUMMARY_JSON=$(echo "$SUMMARY_JSON" | jq --arg name "$name" --arg ver "$version" '. + {($name): $ver}')
-
-  local expected_version
-  expected_version=$(echo "$EXPECTED_JSON" | jq -r --arg name "$name" '.[$name] // empty')
-
-  if [[ -n "$expected_version" && "$version" != "$expected_version" ]]; then
-    echo -e "${RED}⚠️ Version mismatch for $name: expected $expected_version, got $version${NC}"
-  fi
+install_cfn_guard() {
+  echo "📦 Installing cfn-guard..." | tee -a "$LOG_FILE"
+  CFN_GUARD_VERSION="3.0.0"
+  curl -sSL -o /tmp/cfn-guard.tar.gz "https://github.com/aws-cloudformation/cloudformation-guard/releases/download/v${CFN_GUARD_VERSION}/cfn-guard-linux.tar.gz"
+  tar -xzf /tmp/cfn-guard.tar.gz -C /usr/local/bin
+  chmod +x /usr/local/bin/cfn-guard*
+  rm /tmp/cfn-guard.tar.gz
+  echo "✅ cfn-guard installed." | tee -a "$LOG_FILE"
 }
 
-get_expected_version() {
-  local name=$1
-  echo "$EXPECTED_JSON" | jq -r --arg name "$name" '.[$name] // empty'
+install_samcli() {
+  echo "📦 Installing AWS SAM CLI..." | tee -a "$LOG_FILE"
+  pip3 install --no-cache-dir --upgrade aws-sam-cli==1.116.0 >> "$LOG_FILE" 2>&1
+  echo "✅ AWS SAM CLI installed." | tee -a "$LOG_FILE"
 }
 
-should_run() {
-  [[ " ${INSTALL_TOOLS[*]} " =~ " all " || " ${INSTALL_TOOLS[*]} " =~ " $1 " ]]
-}
+# Install tools based on user selection
+if [[ "$TOOLS" == "all" || "$TOOLS" == *"cfn-lint"* ]]; then install_cfn_lint; fi
+if [[ "$TOOLS" == "all" || "$TOOLS" == *"taskcat"* ]]; then install_taskcat; fi
+if [[ "$TOOLS" == "all" || "$TOOLS" == *"cfn-guard"* ]]; then install_cfn_guard; fi
+if [[ "$TOOLS" == "all" || "$TOOLS" == *"samcli"* || "$TOOLS" == *"aws-sam-cli"* ]]; then install_samcli; fi
 
-# OS dependencies
-log_step "Installing OS dependencies"
-run_cmd "Install OS dependencies" sudo apt-get update -y && sudo apt-get install -y \
-  curl unzip git jq gnupg software-properties-common ca-certificates lsb-release tar build-essential python3-pip
-
-# AWS CLI
-if should_run awscli; then
-  log_step "Installing AWS CLI"
-  run_cmd "Download AWS CLI" curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-  run_cmd "Unzip AWS CLI" unzip awscliv2.zip
-  run_cmd "Install AWS CLI" sudo ./aws/install
-  rm -rf awscliv2.zip aws
-  AWS_VERSION=$(aws --version 2>&1 | awk '{print $1}' | cut -d/ -f2)
-  add_summary awscli "$AWS_VERSION"
-fi
-
-# cfn-lint
-if should_run cfn-lint; then
-  log_step "Installing cfn-lint"
-  run_cmd "Install cfn-lint" pip3 install --upgrade cfn-lint
-  CFNLINT_VERSION=$(cfn-lint --version)
-  add_summary cfn-lint "$CFNLINT_VERSION"
-fi
-
-# taskcat
-if should_run taskcat; then
-  log_step "Installing taskcat"
-  run_cmd "Install taskcat" pip3 install --upgrade taskcat
-  TASKCAT_VERSION=$(taskcat --version | awk '{print $2}')
-  add_summary taskcat "$TASKCAT_VERSION"
-fi
-
-# cfn-guard
-if should_run cfn-guard; then
-  version=$(get_expected_version cfn-guard)
-  version="${version:-2.1.0}"
-  log_step "Installing cfn-guard"
-  run_cmd "Download cfn-guard" curl -sLo cfn-guard.zip "https://github.com/aws-cloudformation/cloudformation-guard/releases/download/v${version}/cfn-guard-linux.zip"
-  run_cmd "Unzip cfn-guard" unzip -o cfn-guard.zip -d cfn-guard-bin
-  run_cmd "Move cfn-guard" sudo mv cfn-guard-bin/cfn-guard /usr/local/bin/
-  rm -rf cfn-guard.zip cfn-guard-bin
-  CFGUARD_VERSION=$(cfn-guard --version | awk '{print $2}')
-  add_summary cfn-guard "$CFGUARD_VERSION"
-fi
-
-# SAM CLI
-if should_run samcli; then
-  log_step "Installing AWS SAM CLI"
-  run_cmd "Install SAM CLI dependencies" sudo apt-get install -y python3-distutils
-  run_cmd "Install AWS SAM CLI" pip3 install --upgrade aws-sam-cli
-  SAM_VERSION=$(sam --version | awk '{print $4}')
-  add_summary samcli "$SAM_VERSION"
-fi
-
-# jq (optional but useful)
-if should_run jq; then
-  log_step "Installing jq"
-  run_cmd "Install jq" sudo apt-get install -y jq
-  JQ_VERSION=$(jq --version)
-  add_summary jq "$JQ_VERSION"
-fi
-
-# Write summary
-if ! $DRY_RUN; then
-  echo "$SUMMARY_JSON" | jq . > "$SUMMARY_FILE"
-  echo -e "\n${GREEN}📦 Tool summary written to $SUMMARY_FILE${NC}"
-fi
-
-echo -e "\n${GREEN}✅ All CloudFormation tools installed successfully at $(date '+%Y-%m-%d %H:%M:%S')${NC}"
+echo "🎉 Tool installation complete." | tee -a "$LOG_FILE"
