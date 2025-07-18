@@ -29,22 +29,13 @@ permissions:
 
 
 jobs:
-  cloudformation-ci: 
-    name: CloudFormation CI
-    runs-on: ubuntu-latest 
-    steps: 
-      - name: hello-world 
-        run: echo "Hello World!" 
-
-
-# jobs:
-#   cloudformation-ci:
-#     name: CI
-#     uses: subhamay-bhattacharyya-gha/cfn-ci-reusable-wf/.github/workflows/ci.yaml@feature/GHA-0009-add-condition-for-feature
-#     with:
-#       environment: "ci"
-#       cloudformation-dir: "cfn"
-#     secrets:
-#       aws-role-arn: ${{ secrets.AWS_ROLE_ARN }}
-#       infracost-api-key: ${{ secrets.INFRACOST_API_KEY }}
-#       infracost-gist-id: ${{ secrets.INFRACOST_GIST_ID }}
+  cloudformation-ci:
+    name: CI
+    uses: subhamay-bhattacharyya-gha/cfn-ci-reusable-wf/.github/workflows/ci.yaml@feature/GHA-0001-initial-release
+    with:
+      environment: "ci"
+      cloudformation-dir: "cfn"
+    secrets:
+      aws-role-arn: ${{ secrets.AWS_ROLE_ARN }}
+      infracost-api-key: ${{ secrets.INFRACOST_API_KEY }}
+      infracost-gist-id: ${{ secrets.INFRACOST_GIST_ID }}
