@@ -20,8 +20,9 @@ Resources:
       VersioningConfiguration:
         Status: Enabled
       Tags:
-        - Key: Name
-          Value: !Ref BucketName
+        - Key: Project
+          Value: "GitHub CI/CD"
+
 
 Outputs:
   S3BucketName:
