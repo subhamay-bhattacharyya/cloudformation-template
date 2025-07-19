@@ -19,6 +19,9 @@ Resources:
       AccessControl: Private
       VersioningConfiguration:
         Status: Enabled
+      Tags:
+        - Key: Name
+          Value: !Ref BucketName
 
 Outputs:
   S3BucketName:
