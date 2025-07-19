@@ -34,7 +34,9 @@ jobs:
     uses: subhamay-bhattacharyya-gha/cfn-ci-reusable-wf/.github/workflows/ci.yaml@feature/GHA-0001-initial-release
     with:
       environment: "ci"
-      cloudformation-dir: "cfn"
+      cfn-template-dir: "cfn"
+      cfn-params-file: "params/default.json"
+      cfn-template-file: "s3-bucket.yaml"
     secrets:
       aws-role-arn: ${{ secrets.AWS_ROLE_ARN }}
       infracost-api-key: ${{ secrets.INFRACOST_API_KEY }}
