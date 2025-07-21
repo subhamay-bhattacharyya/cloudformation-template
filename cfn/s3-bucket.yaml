@@ -9,7 +9,7 @@ Parameters:
     MaxLength: "63"
     AllowedPattern: '^[a-z0-9.-]+$'
     ConstraintDescription: Bucket name must be lowercase and can include numbers, dots, and hyphens.
-    Default: "subhamay-default-bucket-name-987"
+    Default: "subhamay-default-bucket-name-678"
 
 Resources:
   S3Bucket:
