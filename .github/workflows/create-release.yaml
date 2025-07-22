@@ -1,4 +1,4 @@
-name: Create
+name: Create Release
 run-name: Merge Pull Request run by ${{ github.actor }} on ${{ github.ref_name }}
 
 on:
