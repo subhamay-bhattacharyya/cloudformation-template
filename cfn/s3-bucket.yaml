@@ -9,7 +9,7 @@ Parameters:
     MaxLength: "63"
     AllowedPattern: '^[a-z0-9.-]+$'
     ConstraintDescription: Bucket name must be lowercase and can include numbers, dots, and hyphens.
-    Default: "subhamay-default-bucket-name-1234"
+    Default: "subhamay-default-bucket-name-6789"
   CiBuildId:
     Type: String
     Description: Unique identifier for the CI build.
