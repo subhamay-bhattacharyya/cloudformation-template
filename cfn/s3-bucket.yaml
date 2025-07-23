@@ -9,11 +9,11 @@ Parameters:
     MaxLength: "63"
     AllowedPattern: '^[a-z0-9.-]+$'
     ConstraintDescription: Bucket name must be lowercase and can include numbers, dots, and hyphens.
-    Default: "subhamay-default-bucket-name-06902"
+    Default: "subhamay-default-bucket-name-06611"
   CiBuildId:
     Type: String
     Description: Unique identifier for the CI build.
-    Default: "default-ci-build-id"
+    Default: ""
 
 Resources:
   S3Bucket:
