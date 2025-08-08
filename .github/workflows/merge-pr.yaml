@@ -1,11 +1,10 @@
-name: CloudFormation CI
-run-name: Build run by ${{ github.actor }} on ${{ github.ref_name }}
+name: Create Release
+run-name: Merge Pull Request run by ${{ github.actor }} on ${{ github.ref_name }}
 
 on:
   push:
     branches:
-      - 'feature/**'
-      - 'bug/**'
+      - 'main'
     paths-ignore:
       - 'README.md'
       - '.github/**'
@@ -26,12 +25,13 @@ on:
 permissions:
   contents: write
   id-token: write
+  actions: read
 
 
 jobs:
-  cloudformation-ci:
+  cloudformation-merge-pr:
     name: CI
-    uses: subhamay-bhattacharyya-gha/cfn-ci-reusable-wf/.github/workflows/ci.yaml@feature/GHA-0001-initial-release
+    uses: subhamay-bhattacharyya-gha/cfn-release-wf/.github/workflows/merge-pr.yaml@feature/GHA-0001-initial-release
     with:
       environment: "ci"
       cfn-directory: "cfn"
