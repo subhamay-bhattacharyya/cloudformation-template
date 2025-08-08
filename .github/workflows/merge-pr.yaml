@@ -29,19 +29,11 @@ permissions:
 
 
 jobs:
-  create-release: 
-    runs-on: ubuntu-latest 
-    steps: 
-      - name: hello-world 
-        run: echo "Hello World!" 
-
-  # create-release:
-  #   name: Create Release
-  #   uses: subhamay-bhattacharyya-gha/tf-release-wf/.github/workflows/create-release.yaml@feature/GHA-0002-initial-release
-  #   with:
-  #     environment: "ci"
-  #     terraform-dir: "tf"
-  #   secrets:
-  #     aws-role-arn: ${{ secrets.AWS_ROLE_ARN }}
-  #     infracost-api-key: ${{ secrets.INFRACOST_API_KEY }}
-  #     infracost-gist-id: ${{ secrets.INFRACOST_GIST_ID }}
+  cloudformation-merge-pr:
+    name: CI
+    uses: subhamay-bhattacharyya-gha/cfn-release-wf/.github/workflows/merge-pr.yaml@feature/GHA-0001-initial-release
+    with:
+      environment: "ci"
+      cfn-directory: "cfn"
+    secrets:
+      aws-role-arn: ${{ secrets.AWS_ROLE_ARN }}

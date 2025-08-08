@@ -37,5 +37,3 @@ jobs:
       cfn-directory: "cfn"
     secrets:
       aws-role-arn: ${{ secrets.AWS_ROLE_ARN }}
-      infracost-api-key: ${{ secrets.INFRACOST_API_KEY }}
-      infracost-gist-id: ${{ secrets.INFRACOST_GIST_ID }}
